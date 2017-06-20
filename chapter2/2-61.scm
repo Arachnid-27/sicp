@@ -1,0 +1,10 @@
+(define (join-set x set)
+        (cond ((null? set) (cons x ()))
+              ((= x (car set)) set)
+              ((< x (car set)) (cons x set))
+              (else (cons (car set) (join-set x (cdr set))))))
+
+(newline)
+(display (join-set 4 (list 1 3 5 7)))
+(newline)
+(display (join-set 3 (list 1 3 5 7)))
