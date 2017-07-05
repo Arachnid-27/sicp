@@ -1,0 +1,6 @@
+(define (install-polynomial-package)
+        (define (=zero? x)
+                (or (empty-termlist? x)
+                    (and (= (coeff (first-term x)) 0)
+                         (=zero? (rest-terms x)))))
+        (put '=zero? 'polynomial =zero?))
