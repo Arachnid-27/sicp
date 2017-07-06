@@ -1,0 +1,17 @@
+(define rand
+        (let ((state 1.0))
+             (lambda (m)
+                     (cond ((eq? m 'generate) (random state))
+                           ((eq? m 'reset) (lambda (x)
+                                                   (set! state x)))
+                           (else (error "Unknown operation -- RAND" m))))))
+
+(newline)
+(display (rand 'generate))
+(newline)
+(display (rand 'generate))
+((rand 'reset) 1000.0)
+(newline)
+(display (rand 'generate))
+(newline)
+(display (rand 'generate))
