@@ -1,0 +1,43 @@
+(define (count-pairs x)
+        (if (not (pair? x))
+            0
+            (+ (count-pairs (car x))
+               (count-pairs (cdr x))
+               1)))
+
+(define output=3 (cons () (cons () (cons () ()))))
+(define output=4
+        (let ((pair1 (cons () (cons () ()))))
+             (cons pair1 (cdr pair1))))
+(define output=5
+        (let ((pair1 (cons () (cons () ()))))
+             (cons pair1 pair1)))
+(define output=7
+        (let ((pair1 (cons () ())))
+             (let ((pair2 (cons pair1 pair1)))
+                  (cons pair2 pair2))))
+(define output=null
+        (let ((pair1 (cons () (cons () (cons () ())))))
+             (set-cdr! (cddr pair1) pair1)
+             pair1))
+
+(newline)
+(display output=3)
+(newline)
+(display (count-pairs output=3))
+(newline)
+(display output=4)
+(newline)
+(display (count-pairs output=4))
+(newline)
+(display output=5)
+(newline)
+(display (count-pairs output=5))
+(newline)
+(display output=7)
+(newline)
+(display (count-pairs output=7))
+;; (newline)
+;; (display output=null)
+(newline)
+(display (count-pairs output=null))

@@ -1,0 +1,16 @@
+(define (check-loop x)
+        (define (check-loop-iter slow fast)
+                (cond ((or (null? fast)
+                           (null? (cdr fast)))
+                           #f)
+                      ((eq? fast slow) #t)
+                      (else (check-loop-iter (cdr slow) (cddr fast)))))
+        (check-loop-iter x (cdr x)))
+
+(define (main)
+        (let ((x (list 1 2 3 4)))
+             (display (check-loop x))
+             (set-cdr! (cdddr x) (cdr x))
+             (display (check-loop x))))
+
+(main)
