@@ -5,7 +5,7 @@
                 (cons-stream (/ (stream-car s) n)
                              (integerate-series-iter (stream-cdr s)
                                                      (+ n 1))))
-        (integerate-series-iter s 2))
+        (integerate-series-iter s 1))
 
 (define exp-series
         (cons-stream 1 (integerate-series exp-series)))
