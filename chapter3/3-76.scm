@@ -1,0 +1,11 @@
+(define (smooth stream)
+        (scale-stream (add-streams stream (cons-stream 0 stream))
+                      0.5))
+
+(define (make-zero-crossings input-stream last-value)
+        (define (make-zero-crossings-iter stream last-value)
+                (cons-stream (sign-change-detector (stream-car stream)
+                                                   last-value)
+                             (make-zero-crossings-iter (stream-cdr stream)
+                                                       (stream-car stream))))
+        (make-zero-crossings-iter (smooth input-stream) 0))
