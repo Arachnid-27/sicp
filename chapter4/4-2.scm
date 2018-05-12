@@ -1,0 +1,25 @@
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp)
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        ((call? exp)
+         (apply (eval (call-procedure exp) env)
+                (list-of-values (call-arguments exp) env)))
+        (else
+          (error "Unknown expression " exp))))
+
+(define (call? exp) (tagged-list? exp 'call))
+
+(define (call-procedure exp) (cadr exp))
+
+(define (call-arguments exp) (cddr exp))

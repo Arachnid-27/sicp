@@ -9,8 +9,13 @@
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
+        ((call? exp)
+         (apply (eval (call-procedure exp) env)
+                (list-of-values (call-arguments exp) env)))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
+        ((and? exp) (eval-and (operands exp) env))
+        ((or? exp) (eval-or (operands exp) env))
         ((if? exp) (eval-if exp env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
@@ -88,6 +93,12 @@
 
 (define (assignment-value exp) (caddr exp))
 
+(define (call? exp) (tagged-list? exp 'call))
+
+(define (call-procedure exp) (cadr exp))
+
+(define (call-arguments exp) (cddr exp))
+
 (define (definition? exp) (tagged-list? exp 'define))
 
 (define (definition-variable exp)
@@ -109,6 +120,22 @@
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
+
+(define (eval-logic unary exp env)
+    (if (null? exp)
+        '()
+        (let ((val (eval (first-exp exp) env)))
+          (cond ((last-exp? exp) val)
+                ((unary val) val)
+                (else (eval-logic unary (rest-exps exp) env))))))
+
+(define (and? exp) (tagged-list? exp 'and))
+
+(define (eval-and exp env) (eval-logic false? exp env))
+
+(define (or? exp) (tagged-list? exp 'or))
+
+(define (eval-or exp env) (eval-logic true? exp env))
 
 (define (if? exp) (tagged-list? exp 'if))
 
@@ -273,6 +300,8 @@
         (list '= =)
         (list '> >)
         (list '< <)
+        (list '+ +)
+        (list '- -)
         ))
 
 (define (primitive-procedure-names)
