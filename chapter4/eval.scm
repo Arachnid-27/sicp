@@ -151,6 +151,9 @@
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
 
+(define (make-if-recipient predicate recipient alternative)
+  (list 'if predicate (list recipient predicate) alternative))
+
 (define (begin? exp) (tagged-list? exp 'begin))
 
 (define (begin-actions exp) (cdr exp))
@@ -191,6 +194,10 @@
 
 (define (cond-actions clause) (cdr clause))
 
+(define (cond-recipient? clause) (tagged-list? (cdr clause) '=>))
+
+(define (cond-recipient-unary clause) (caddr clause))
+
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
 
@@ -203,9 +210,13 @@
             (if (null? rest)
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last " clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+            (if (cond-recipient? first)
+                (make-if-recipient (cond-predicate first)
+                                   (cond-recipient-unary first)
+                                   (expand-clauses rest))
+                (make-if (cond-predicate first)
+                         (sequence->exp (cond-actions first))
+                         (expand-clauses rest)))))))
 
 (define (true? x) (not (eq? x false)))
 
