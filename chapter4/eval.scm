@@ -26,6 +26,7 @@
         ((cond? exp) (eval (cond->if exp) env))
         ((let? exp) (eval (let->combination exp) env))
         ((let*? exp) (eval (let*->nested-lets exp) env))
+        ((while? exp) (eval (while->recursion exp) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -254,7 +255,7 @@
       (cddr exp)))
 
 (define (let-named->definition exp)
-  (make-begin (cons (make-define (cons (let-named-var exp) (let-vars exp))
+  (make-begin (list (make-define (cons (let-named-var exp) (let-vars exp))
                                  (let-body exp))
                     (cons (let-named-var exp) (let-exps exp)))))
 
@@ -274,6 +275,20 @@
               (list (car exps))
               (nested-lets (cdr exps)))))
   (nested-lets (let-bindings exp)))
+
+(define (while? exp) (tagged-list? exp 'while))
+
+(define (while-predicate exp) (cadr exp))
+
+(define (while-body exp) (caddr exp))
+
+(define (while->recursion exp)
+  (make-begin (list (make-define '(<inner-procedure>)
+                                 (list (make-if (while-predicate exp)
+                                                (make-begin (list (while-body exp)
+                                                                  '(<inner-procedure>)))
+                                                ''())))
+                    '(<inner-procedure>))))
 
 (define (true? x) (not (eq? x false)))
 

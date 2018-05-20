@@ -16,7 +16,7 @@
       (cddr exp)))
 
 (define (let-named->definition exp)
-  (make-begin (cons (make-define (cons (let-named-var exp) (let-vars exp))
+  (make-begin (list (make-define (cons (let-named-var exp) (let-vars exp))
                                  (let-body exp))
                     (cons (let-named-var exp) (let-exps exp)))))
 
