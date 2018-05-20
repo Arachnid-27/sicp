@@ -25,6 +25,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
         ((let? exp) (eval (let->combination exp) env))
+        ((let*? exp) (eval (let*->nested-lets exp) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -99,6 +100,9 @@
 (define (call-procedure exp) (cadr exp))
 
 (define (call-arguments exp) (cddr exp))
+
+(define (make-define parameters body)
+        (cons 'define (cons parameters body)))
 
 (define (definition? exp) (tagged-list? exp 'define))
 
@@ -221,24 +225,55 @@
 
 (define (let? exp) (tagged-list? exp 'let))
 
+(define (let-named? exp) (not (list? (cadr exp))))
+
 (define (let-vars exp)
   (define (let-vars-iter exps)
     (if (null? exps)
         '()
         (cons (caar exps) (let-vars-iter (cdr exps)))))
-  (let-vars-iter (cadr exp)))
+  (let-vars-iter (let-bindings exp)))
 
 (define (let-exps exp)
   (define (let-exps-iter exps)
     (if (null? exps)
         '()
         (cons (cadar exps) (let-exps-iter (cdr exps)))))
-  (let-exps-iter (cadr exp)))
+  (let-exps-iter (let-bindings exp)))
 
-(define (let-body exp) (cddr exp))
+(define (let-named-var exp) (cadr exp))
+
+(define (let-bindings exp)
+  (if (let-named? exp)
+      (caddr exp)
+      (cadr exp)))
+
+(define (let-body exp)
+  (if (let-named? exp)
+      (cdddr exp)
+      (cddr exp)))
+
+(define (let-named->definition exp)
+  (make-begin (cons (make-define (cons (let-named-var exp) (let-vars exp))
+                                 (let-body exp))
+                    (cons (let-named-var exp) (let-exps exp)))))
 
 (define (let->combination exp)
-  (append (list (make-lambda (let-vars exp) (let-body exp))) (let-exps exp)))
+  (if (let-named? exp)
+      (let-named->definition exp)
+      (cons (make-lambda (let-vars exp) (let-body exp)) (let-exps exp))))
+
+(define (let*? exp) (tagged-list? exp 'let*))
+
+(define (let*->nested-lets exp)
+  (define (nested-lets exps)
+    (if (null? exps)
+        (append (list 'let '())
+                (let-body exp))
+        (list 'let
+              (list (car exps))
+              (nested-lets (cdr exps)))))
+  (nested-lets (let-bindings exp)))
 
 (define (true? x) (not (eq? x false)))
 
